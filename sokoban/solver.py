@@ -272,7 +272,6 @@ def uniformCostSearch(gameState):
 
         if node[-1] not in exploredSet:
             exploredSet.add(node[-1])
-            currentCost = cost(node_action[1:])
 
             for action in legalActions(node[-1][0], node[-1][1]):
                 newPosPlayer, newPosBox = updateState(
