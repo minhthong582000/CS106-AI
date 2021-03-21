@@ -211,80 +211,209 @@ def depthFirstSearch(gameState):
 
 
 def breadthFirstSearch(gameState):
-    """Implement breadthFirstSearch approach"""
+    """
+    Implement breadthFirstSearch approach
+    Sử dụng thuật toán BFS để tìm lời giải - Sử dụng CTDL queue để lưu các state và action tương ứng
+
+    gameState - state hiện tại của game (bản đồ)
+
+    return - 1 list các actions để đến được goal, nếu không đến được trả về "[]"
+    """
+
+    # Lấy ra các vị trí bắt đầu của Boxes
+    # e.g. ((0,0), (2,3))
     beginBox = PosOfBoxes(gameState)
+
+    # Lấy ra vị trí bắt đầu của player
+    # e.g. (1,0)
     beginPlayer = PosOfPlayer(gameState)
 
+    # startState là tuple dùng để lưu state khởi đầu
+    # Bao gồm vị trí bắt đầu của player và boxes
     # e.g. ((2, 2), ((2, 3), (3, 4), (4, 4), (6, 1), (6, 4), (6, 5)))
     startState = (beginPlayer, beginBox)
-    frontier = collections.deque([[startState]])  # store states
-    actions = collections.deque([[0]])  # store actions
-    exploredSet = set()
-    temp = []
-    # Implement breadthFirstSearch here
-    while frontier:
-        node = frontier.popleft()
-        node_action = actions.popleft()
-        print(node_action)
 
+    # frontier là 1 queue dùng để store states
+    # Lưu các list - trong đó mỗi list sẽ đại diện cho 1 tập các states
+    # đã được explore từ vị trí khởi đầu
+    #
+    # Bắt đầu bằng startState - state khởi đầu
+    frontier = collections.deque([[startState]])
+
+    # actions là 1 queue dùng để store actions
+    # Lưu các list - trong đó mỗi list sẽ đại diện cho 1 tập các actions cần làm để
+    # đạt được state tương ứng ở frontier
+    #
+    # Bắt đầu bằng [0] - không có hành động
+    actions = collections.deque([[0]])
+
+    # Store các state đã được explore
+    exploredSet = set()
+
+    # list lưu các actions để đến được goal (Kết thúc game)
+    temp = []
+
+    # Implement breadthFirstSearch here
+    # Ta sẽ liên tục lấy ra các phần tử ở đầu frontier cho tới khi frontier rỗng
+    while frontier:
+        # Lấy ra list ở đầu frontier queue lưu tập các states
+        node = frontier.popleft()
+
+        # Lấy ra list ở đầu action queue lưu tập các actions
+        node_action = actions.popleft()
+
+        # Lấy ra vị trí các boxes ở cuối node list (state gần nhất mà ta đã thêm vào frontier)
+        # Nếu vị trí các boxes đã ở đúng vị trí (endState)
+        # lưu lại list các actions tương ứng với states vào temp, kết thúc vòng lặp
         if isEndState(node[-1][-1]):
+            # Lưu actions vào temp, bỏ qua phần tử 0 lúc khởi tạo
             temp += node_action[1:]
             break
 
+        # Nếu các boxes vẫn chưa tới được đúng vị trí
+        # Ta kiểm tra xem state mới nhất ở cuối node list đã đuợc explore chưa
         if node[-1] not in exploredSet:
+            # Nếu chưa ta thêm state đó vào exploreSet
             exploredSet.add(node[-1])
+
+            # Sau đó, tìm kiếm các action mà ta có thể thực hiện dựa trên
+            # vị trí hiện tại của player, boxes (Lấy từ state đó)
             for action in legalActions(node[-1][0], node[-1][1]):
+
+                # Lấy ra vị ví mới của các boxes và player từ action (u, d, r, l, U, D, R, L)
                 newPosPlayer, newPosBox = updateState(
                     node[-1][0], node[-1][1], action)
+
+                # Nếu các box bị kẹt, chuyển sang action khác
                 if isFailed(newPosBox):
                     continue
+
+                # action không làm các boxes bị kẹt
+                # Ta sẽ được một state mới
+                # Thêm tập các states cũ cùng với state mới vào frontier
                 frontier.append(node + [(newPosPlayer, newPosBox)])
+                # Thêm tập các actions cũ cùng với action mới vào frontier
                 actions.append(node_action + [action[-1]])
 
+    # Trả về list các hành động để đến được goal !!
     return temp
 
 
 def cost(actions):
-    """A cost function"""
+    """
+    A cost function
+    Sử dụng kết hợp với UCS
+    Dùng để tính toán chi phí cho các actions
+    Với mỗi lần di chuyển player ta sẽ tính là 1 cost,
+    không bao gồm các hành động di chuyển các boxes
+    """
+
+    # Đếm sô lượng action được kí hiệu viết thường (lowercase)
+    # hay action làm di chuyển player
     return len([x for x in actions if x.islower()])
 
 
 def uniformCostSearch(gameState):
-    """Implement uniformCostSearch approach"""
+    """
+    Implement uniformCostSearch approach
+    Sử dụng thuật toán UCS để tìm lời giải
+
+    Kèm theo CTDL priority queue để lưu các state và action tương ứng, 
+    trong đó nhờ sự giúp đỡ của trọng số priority (ưu tiên đường đi có trọng số nhỏ nhất - hay đường đi với số bước đi ít nhất)
+    ta sẽ tìm được đường đi tối ưu để đến được goal 
+
+    gameState - state hiện tại của game (bản đồ)
+
+    return - 1 list các actions để đến được goal, nếu không đến được trả về "[]"
+    """
+
+    # Lấy ra các vị trí bắt đầu của Boxes
+    # e.g. ((0,0), (2,3))
     beginBox = PosOfBoxes(gameState)
+
+    # Lấy ra vị trí bắt đầu của player
+    # e.g. (1,0)
     beginPlayer = PosOfPlayer(gameState)
 
+    # startState là tuple dùng để lưu state khởi đầu
+    # Bao gồm vị trí bắt đầu của player và boxes
+    # e.g. ((2, 2), ((2, 3), (3, 4), (4, 4), (6, 1), (6, 4), (6, 5)))
     startState = (beginPlayer, beginBox)
+
+    # frontier là 1 queue dùng để store states
+    # Lưu các list - trong đó mỗi list sẽ đại diện cho 1 tập các states
+    # đã được explore từ vị trí khởi đầu
+    #
+    # Bắt đầu bằng startState - state khởi đầu, với trọng số bằng 0
     frontier = PriorityQueue()
     frontier.push([startState], 0)
+
+    # Store các state đã được explore
     exploredSet = set()
+
+    # actions là 1 queue dùng để store actions
+    # Lưu các list - trong đó mỗi list sẽ đại diện cho 1 tập các actions cần làm để
+    # đạt được state tương ứng ở frontier
+    #
+    # Bắt đầu bằng [0] - không có hành động, với trọng số bằng 0
     actions = PriorityQueue()
     actions.push([0], 0)
+
+    # list lưu các actions để đến được goal (Kết thúc game)
     temp = []
+
     # Implement uniform cost search here
+    # Ta sẽ liên tục lấy ra các phần tử ở đầu frontier cho tới khi frontier rỗng
     while frontier.isEmpty() == False:
+        # Lấy ra list ở đầu frontier queue có trọng số nhỏ nhất,
+        # lưu tập các states
         node = frontier.pop()
+
+        # Lấy ra list ở đầu action queue có trọng số nhỏ nhất,
+        # lưu tập các actions
         node_action = actions.pop()
 
+        # Lấy ra vị trí các boxes ở cuối node list (state gần nhất mà ta đã thêm vào frontier)
+        # Nếu vị trí các boxes đã ở đúng vị trí (endState)
+        # lưu lại list các actions tương ứng với states vào temp, kết thúc vòng lặp
         if isEndState(node[-1][-1]):
+            # Lưu actions vào temp, bỏ qua phần tử 0 lúc khởi tạo
             temp += node_action[1:]
             break
 
+        # Nếu các boxes vẫn chưa tới được đúng vị trí
+        # Ta kiểm tra xem state mới nhất ở cuối node list đã đuợc explore chưa
         if node[-1] not in exploredSet:
+            # Nếu chưa ta thêm state đó vào exploreSet
             exploredSet.add(node[-1])
 
+            # Sau đó, tìm kiếm các action mà ta có thể thực hiện dựa trên
+            # vị trí hiện tại của player, boxes (Lấy từ state đó)
             for action in legalActions(node[-1][0], node[-1][1]):
+
+                # Lấy ra vị ví mới của các boxes và player từ action (u, d, r, l, U, D, R, L)
                 newPosPlayer, newPosBox = updateState(
                     node[-1][0], node[-1][1], action)
+
+                # Nếu các box bị kẹt, chuyển sang action khác
                 if isFailed(newPosBox):
                     continue
 
+                # Tính toán trọng số ưu tiên (hay cost) của chuỗi actions
+                # Bao gồm cả action mà ta vừa thêm vào
                 currentCost = cost((node_action + [action[-1]])[1:])
 
+                # action không làm các boxes bị kẹt
+                # Ta sẽ được một state mới
+                # Thêm tập các states cũ cùng với state mới vào frontier
+                # Kèm theo đó là trọng số
                 frontier.push(
                     node + [(newPosPlayer, newPosBox)], currentCost)
+                # Thêm tập các actions cũ cùng với action mới vào frontier
+                # Kèm theo đó là trọng số
                 actions.push(node_action + [action[-1]], currentCost)
 
+    # Trả về list các hành động để đến được goal !!
     return temp
 
 
