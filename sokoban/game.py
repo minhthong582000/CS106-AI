@@ -74,7 +74,7 @@ class Game:
                 self.player.move(event.key, self.level, self.player_interface)
                 if self.has_win():
                     self.index_level += 1
-                    if (self.index_level == 17):
+                    if (self.index_level == 21):
                         self.index_level = 1
                     self.scores.save()
                     self.load_level()

@@ -319,7 +319,8 @@ def uniformCostSearch(gameState):
     Sử dụng thuật toán UCS để tìm lời giải
 
     Kèm theo CTDL priority queue để lưu các state và action tương ứng, 
-    trong đó nhờ sự giúp đỡ của trọng số priority (ưu tiên đường đi có trọng số nhỏ nhất - hay đường đi với số bước đi ít nhất)
+    trong đó nhờ sự giúp đỡ của trọng số priority (ưu tiên đường đi có trọng số nhỏ nhất
+     - hay đường đi với số bước đi ít nhất)
     ta sẽ tìm được đường đi tối ưu để đến được goal 
 
     gameState - state hiện tại của game (bản đồ)
