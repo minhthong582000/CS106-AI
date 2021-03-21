@@ -221,12 +221,11 @@ def breadthFirstSearch(gameState):
     actions = collections.deque([[0]])  # store actions
     exploredSet = set()
     temp = []
-
-    print(frontier)
     # Implement breadthFirstSearch here
     while frontier:
         node = frontier.popleft()
         node_action = actions.popleft()
+        print(node_action)
 
         if isEndState(node[-1][-1]):
             temp += node_action[1:]
@@ -280,6 +279,9 @@ def uniformCostSearch(gameState):
                     node[-1][0], node[-1][1], action)
                 if isFailed(newPosBox):
                     continue
+
+                currentCost = cost((node_action + [action[-1]])[1:])
+
                 frontier.push(
                     node + [(newPosPlayer, newPosBox)], currentCost)
                 actions.push(node_action + [action[-1]], currentCost)
