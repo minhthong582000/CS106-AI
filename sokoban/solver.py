@@ -419,10 +419,17 @@ def uniformCostSearch(gameState):
 
 
 def manhattan(box, goal):
+    """
+    Khoảng cách từ hộp tới vị trí goal
+    """
     return abs(box[0] - goal[0]) + abs(box[1] - goal[1])
 
 
 def heuristicCost(posBox):
+    """
+    Hàm tính toán Heuristic
+    Tính tổng khoảng cách ngắn nhất từ các hộp tới vị trí goal
+    """
     boxesCopy = list(posBox)
 
     hCost = 0
@@ -454,19 +461,10 @@ def AStarSearch(gameState):
 
     temp = []
 
-    # Depth
-    depth = 0
-    nodeLeft = 1
-
     while frontier.isEmpty() == False:
         node = frontier.pop()
 
         node_action = actions.pop()
-
-        nodeLeft -= 1
-
-        if nodeLeft == 0:
-            depth += 1
 
         if isEndState(node[-1][-1]):
             temp += node_action[1:]
@@ -482,12 +480,59 @@ def AStarSearch(gameState):
                 if isFailed(newPosBox):
                     continue
 
-                currentCost = heuristicCost(node[-1][-1]) + depth
+                # f(n) = g(n) + h(n)
+                currentCost = heuristicCost(
+                    node[-1][-1]) + cost((node_action + [action[-1]])[1:])
 
                 frontier.push(
                     node + [(newPosPlayer, newPosBox)], currentCost)
                 actions.push(node_action + [action[-1]], currentCost)
-                nodeLeft += 1
+
+    return temp
+
+
+def greedySearch(gameState):
+
+    beginBox = PosOfBoxes(gameState)
+
+    beginPlayer = PosOfPlayer(gameState)
+
+    startState = (beginPlayer, beginBox)
+
+    frontier = PriorityQueue()
+    frontier.push([startState], 0)
+
+    exploredSet = set()
+
+    actions = PriorityQueue()
+    actions.push([0], 0)
+
+    temp = []
+
+    while frontier.isEmpty() == False:
+        node = frontier.pop()
+
+        node_action = actions.pop()
+
+        if isEndState(node[-1][-1]):
+            temp += node_action[1:]
+            break
+
+        if node[-1] not in exploredSet:
+            exploredSet.add(node[-1])
+
+            for action in legalActions(node[-1][0], node[-1][1]):
+                newPosPlayer, newPosBox = updateState(
+                    node[-1][0], node[-1][1], action)
+
+                if isFailed(newPosBox):
+                    continue
+
+                currentCost = heuristicCost(node[-1][-1])
+
+                frontier.push(
+                    node + [(newPosPlayer, newPosBox)], currentCost)
+                actions.push(node_action + [action[-1]], currentCost)
 
     return temp
 
@@ -527,6 +572,8 @@ def get_move(layout, player_pos, method):
         result = uniformCostSearch(gameState)
     elif method == 'astar':
         result = AStarSearch(gameState)
+    elif method == 'greedy':
+        result = greedySearch(gameState)
     else:
         raise ValueError('Invalid method.')
     time_end = time.time()
