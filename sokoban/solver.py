@@ -318,10 +318,10 @@ def uniformCostSearch(gameState):
     Implement uniformCostSearch approach
     Sử dụng thuật toán UCS để tìm lời giải
 
-    Kèm theo CTDL priority queue để lưu các state và action tương ứng, 
+    Kèm theo CTDL priority queue để lưu các state và action tương ứng,
     trong đó nhờ sự giúp đỡ của trọng số priority (ưu tiên đường đi có trọng số nhỏ nhất
      - hay đường đi với số bước đi ít nhất)
-    ta sẽ tìm được đường đi tối ưu để đến được goal 
+    ta sẽ tìm được đường đi tối ưu để đến được goal
 
     gameState - state hiện tại của game (bản đồ)
 
@@ -418,6 +418,80 @@ def uniformCostSearch(gameState):
     return temp
 
 
+def manhattan(box, goal):
+    return abs(box[0] - goal[0]) + abs(box[1] - goal[1])
+
+
+def heuristicCost(posBox):
+    boxesCopy = list(posBox)
+
+    hCost = 0
+
+    for goal in posGoals:
+        b, h = min([(b, manhattan(b, goal))
+                    for b in boxesCopy], key=lambda t: t[1])
+        hCost += h
+        boxesCopy.remove(b)
+
+    return hCost
+
+
+def AStarSearch(gameState):
+
+    beginBox = PosOfBoxes(gameState)
+
+    beginPlayer = PosOfPlayer(gameState)
+
+    startState = (beginPlayer, beginBox)
+
+    frontier = PriorityQueue()
+    frontier.push([startState], 0)
+
+    exploredSet = set()
+
+    actions = PriorityQueue()
+    actions.push([0], 0)
+
+    temp = []
+
+    # Depth
+    depth = 0
+    nodeLeft = 1
+
+    while frontier.isEmpty() == False:
+        node = frontier.pop()
+
+        node_action = actions.pop()
+
+        nodeLeft -= 1
+
+        if nodeLeft == 0:
+            depth += 1
+
+        if isEndState(node[-1][-1]):
+            temp += node_action[1:]
+            break
+
+        if node[-1] not in exploredSet:
+            exploredSet.add(node[-1])
+
+            for action in legalActions(node[-1][0], node[-1][1]):
+                newPosPlayer, newPosBox = updateState(
+                    node[-1][0], node[-1][1], action)
+
+                if isFailed(newPosBox):
+                    continue
+
+                currentCost = heuristicCost(node[-1][-1]) + depth
+
+                frontier.push(
+                    node + [(newPosPlayer, newPosBox)], currentCost)
+                actions.push(node_action + [action[-1]], currentCost)
+                nodeLeft += 1
+
+    return temp
+
+
 """Read command"""
 
 
@@ -451,6 +525,8 @@ def get_move(layout, player_pos, method):
         result = breadthFirstSearch(gameState)
     elif method == 'ucs':
         result = uniformCostSearch(gameState)
+    elif method == 'astar':
+        result = AStarSearch(gameState)
     else:
         raise ValueError('Invalid method.')
     time_end = time.time()
