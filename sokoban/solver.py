@@ -418,11 +418,11 @@ def uniformCostSearch(gameState):
     return temp
 
 
-def manhattan(box, goal):
+def manhattan(pos, goal):
     """
-    Khoảng cách từ hộp tới vị trí goal
+    Khoảng cách ngắn nhất từ hộp tới vị trí goal
     """
-    return abs(box[0] - goal[0]) + abs(box[1] - goal[1])
+    return abs(pos[0] - goal[0]) + abs(pos[1] - goal[1])
 
 
 def heuristicCost(posBox):
@@ -441,6 +441,15 @@ def heuristicCost(posBox):
         boxesCopy.remove(b)
 
     return hCost
+
+
+def heuristicCost2(posPlayer, posBox):
+    """
+    Hàm tính toán Heuristic
+    Tính khoảng cách ngắn nhất từ Agent đến thùng
+    """
+
+    return min(manhattan(posPlayer, b) for b in posBox)
 
 
 def AStarSearch(gameState):
@@ -481,8 +490,10 @@ def AStarSearch(gameState):
                     continue
 
                 # f(n) = g(n) + h(n)
+                # currentCost = heuristicCost2(newPosPlayer,
+                #                              newPosBox) + cost((node_action + [action[-1]])[1:])
                 currentCost = heuristicCost(
-                    node[-1][-1]) + cost((node_action + [action[-1]])[1:])
+                    newPosBox) + cost((node_action + [action[-1]])[1:])
 
                 frontier.push(
                     node + [(newPosPlayer, newPosBox)], currentCost)
@@ -528,7 +539,7 @@ def greedySearch(gameState):
                 if isFailed(newPosBox):
                     continue
 
-                currentCost = heuristicCost(node[-1][-1])
+                currentCost = heuristicCost(newPosBox)
 
                 frontier.push(
                     node + [(newPosPlayer, newPosBox)], currentCost)
