@@ -430,14 +430,20 @@ def heuristicCost(posBox):
     Hàm tính toán Heuristic
     Tính tổng khoảng cách ngắn nhất từ các hộp tới vị trí goal
     """
+
+    # Copy các vị trí các boxes để sau khi ta tìm ra được khoảng cách
+    # Xóa nó ra khỏi list sẽ không làm ảnh hưởng đến biến posBox gốc
     boxesCopy = list(posBox)
 
     hCost = 0
 
+    # Ứng với mỗi goal ta sẽ tìm khoảng cách ngắn nhất từ goal đến box gần nó nhất
+    # Sau đó lấy tổng tất cả các khoảng cách đó lại
     for goal in posGoals:
         b, h = min([(b, manhattan(b, goal))
                     for b in boxesCopy], key=lambda t: t[1])
         hCost += h
+        # Xóa box sau khi đã tính toán để đảm bảo các cặp (box, goal) là khác nhau
         boxesCopy.remove(b)
 
     return hCost
@@ -446,13 +452,32 @@ def heuristicCost(posBox):
 def heuristicCost2(posPlayer, posBox):
     """
     Hàm tính toán Heuristic
-    Tính khoảng cách ngắn nhất từ Agent đến thùng
+    Tính khoảng cách ngắn nhất từ Agent đến thùng gần nhất
     """
 
     return min(manhattan(posPlayer, b) for b in posBox)
 
 
 def AStarSearch(gameState):
+    """
+    Imformed Search
+    Trong A*, thay vì đi qua các states như BFS hay DFS (uninformed search),
+    ta sẽ sử dụng Priority Queue để luôn chọn ra đường đi có state gần với đích (solution) nhất. 
+    Độ ưu tiên của một state sẽ được tính bằng: f(n)= g(n) + h(n). 
+    Ở đây, độ hiệu quả của thuật toán sẽ phụ thuộc vào f(h). 
+
+    Trong đó: 
+
+        h(n).: chi phí di chuyển ước lượng để di chuyển từ state trên đồ thị đến đích cuối cùng. 
+
+        g(n): chi phí di chuyển thực tế để đi từ state bắt đầu đến state hiện tại đang xét. 
+
+    Ở đây việc tính toán trọng số ưu tiên có xét đến chi phí các state đã đi qua đến vị trí hiện tại 
+    (tận dụng được ưu điểm của uninformed search), 
+    nên sẽ hiệu quả hơn Greedy
+
+    Do cách implement thuật toán gần giống UCS nên sẽ chỉ comment phần tính toán trọng sô ưu tiên
+    """
 
     beginBox = PosOfBoxes(gameState)
 
@@ -489,7 +514,12 @@ def AStarSearch(gameState):
                 if isFailed(newPosBox):
                     continue
 
+                # Tính toán trọng số ưu tiên (hay cost) của chuỗi actions
+                # Bao gồm cả action mà ta vừa thêm vào
+                # Hàm hheuristicCost1 và heuristicCost2 đã được thêm vào
+                # Hàm cost được lấy tương tự như UCS
                 # f(n) = g(n) + h(n)
+                #
                 # currentCost = heuristicCost2(newPosPlayer,
                 #                              newPosBox) + cost((node_action + [action[-1]])[1:])
                 currentCost = heuristicCost(
@@ -503,7 +533,17 @@ def AStarSearch(gameState):
 
 
 def greedySearch(gameState):
+    """
+    Imformed Search
+    Trong Greedy, thay vì đi qua các states như BFS hay DFS (uninformed search),
+    ta sẽ sử dụng Priority Queue để luôn chọn ra đường đi có state gần với đích (solution) nhất. 
+    Độ ưu tiên của một state sẽ được tính bằng: f(n)= h(n). 
+    Ở đây, độ hiệu quả của thuật toán sẽ phụ thuộc vào f(h). 
 
+    Trong đó: 
+
+        h(n): chi phí di chuyển ước lượng để di chuyển từ state trên đồ thị đến đích cuối cùng. 
+    """
     beginBox = PosOfBoxes(gameState)
 
     beginPlayer = PosOfPlayer(gameState)
@@ -539,6 +579,12 @@ def greedySearch(gameState):
                 if isFailed(newPosBox):
                     continue
 
+                # Tính toán trọng số ưu tiên (hay cost) của chuỗi actions
+                # Bao gồm cả action mà ta vừa thêm vào
+                # Hàm heuristicCost1 và heuristicCost2 đã được thêm vào
+                # f(n) = h(n)
+                #
+                # currentCost = heuristicCost2(newPosBox)
                 currentCost = heuristicCost(newPosBox)
 
                 frontier.push(
